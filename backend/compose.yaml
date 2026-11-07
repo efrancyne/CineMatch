@@ -23,12 +23,22 @@ services:
     volumes:
       - pgadmin_data:/var/lib/pgadmin
 
+  # Apenas cache (detalhes do TMDB, recomendações): nada que só exista
+  # aqui é necessário para o sistema funcionar.
   redis:
-    image: redis:7
+    image: redis:7-alpine
     container_name: cinematch-redis
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
 volumes:
   postgres_data:
   pgadmin_data:
+  redis_data:
