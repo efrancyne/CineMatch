@@ -1,0 +1,7 @@
+.env
+data/
+tests/
+etl/
+**/__pycache__/
+.pytest_cache/
+*.pyc

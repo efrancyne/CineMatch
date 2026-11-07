@@ -10,6 +10,29 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # API (FastAPI). As migrações NÃO rodam automaticamente (faça backup antes):
+  #   docker compose run --rm api alembic upgrade head
+  api:
+    build: .
+    container_name: cinematch-api
+    env_file: .env
+    environment:
+      # Dentro da rede do compose, os serviços se acham pelo nome
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   pgadmin:
     container_name: pgadmin
