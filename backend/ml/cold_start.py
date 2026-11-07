@@ -6,6 +6,7 @@ gêneros de que gosta). A API usa esta função quando o usuário não tem
 linhas em recommendations.
 """
 import psycopg
+from psycopg.rows import tuple_row
 
 # Número mínimo de votos da média bayesiana. Mais alto que no modelo de
 # avaliação porque aqui a lista é a "vitrine" de um usuário novo: preferimos
@@ -53,7 +54,8 @@ def recomendar_cold_start(
              (nomes como em genres.name, ex.: "Comedy").
     excluir: ids de filmes a não recomendar (ex.: já na watchlist).
     """
-    with conexao.cursor() as cursor:
+    # tuple_row: funciona mesmo se a conexão usar outro row_factory (a API usa dict_row)
+    with conexao.cursor(row_factory=tuple_row) as cursor:
         cursor.execute(
             SQL_POPULARES,
             {
