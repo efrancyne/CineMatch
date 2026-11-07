@@ -1,0 +1,8 @@
+{
+  "fatores": 20,
+  "alfa": 0.8,
+  "ndcg@10_validacao": 0.12721952513267457,
+  "modelo": "hibrido-svd-f20+cb-a0.8",
+  "ndcg@10_teste": 0.11381963798544528,
+  "execucao": "2026-11-06 22:20"
+}

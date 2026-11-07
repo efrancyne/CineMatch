@@ -6,3 +6,9 @@ requests==2.34.2
 # Migrações
 alembic==1.20.1
 SQLAlchemy==2.1.8
+
+# Recomendação (ml/)
+numpy==2.5.4
+pandas==3.1.1
+scipy==1.18.1
+tabulate==0.9.0
