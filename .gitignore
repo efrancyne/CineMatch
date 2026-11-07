@@ -1,0 +1,24 @@
+# Ambiente Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Segredos
+.env
+!.env.example
+
+# Dados (baixados ou gerados localmente)
+backend/data/ml-latest-small/
+backend/data/backups/
+*.parquet
+mlruns/
+
+# Frontend
+node_modules/
+
+# Editores / SO
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
