@@ -1,8 +1,6 @@
 # CineMatch
 
-Rede social de filmes (no estilo Letterboxd) com recomendações personalizadas.
-Usuários avaliam filmes, escrevem reviews, seguem outras pessoas e recebem
-recomendações geradas por um modelo híbrido treinado com o dataset MovieLens.
+O CineMatch é a combinação entre um sistema de recomendação e uma rede social, com possibilidade de interação entre os usuários. Os filmes foram carregados a partir do dataset MovieLens e informações visuais dos filmes foram obtidas através da API do TMDB.
 
 - **Dados:** MovieLens `ml-latest-small` (610 usuários, 9.742 filmes, 100.836 avaliações).
 - **TMDB:** fonte externa e complementar. O banco guarda só sinopse, data e pôster;
