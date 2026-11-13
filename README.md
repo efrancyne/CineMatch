@@ -5,7 +5,8 @@ O CineMatch é a combinação entre um sistema de recomendação e uma rede soci
 - **Dados:** MovieLens `ml-latest-small` (610 usuários, 9.742 filmes, 100.836 avaliações).
 - **TMDB:** fonte externa e complementar. O banco guarda só sinopse, data e pôster;
   elenco, diretor, keywords e vídeos são buscados sob demanda e ficam em cache no Redis.
-- **Stack:** Python 3.14, PostgreSQL 16, Redis 7, FastAPI, Alembic, NumPy/SciPy/pandas.
+- **Stack:** Python 3.14, PostgreSQL 16, Redis 7, FastAPI, Alembic, NumPy/SciPy/pandas;
+  frontend em Next.js 16, React 19 e TypeScript (CSS Modules).
 
 ## Arquitetura
 
@@ -14,7 +15,7 @@ O CineMatch é a combinação entre um sistema de recomendação e uma rede soci
  frontend ──▶│  API FastAPI  │──────────────▶ │ TMDB (só na página do filme) │
              │  backend/app  │                └──────────────────────────────┘
              └──┬─────────┬──┘
-     SQL (pool) │         │ cache (detalhes TMDB, similares)
+     SQL (pool) │         │ cache (TMDB, similares, ranking, recomendações)
                 ▼         ▼
         ┌────────────┐  ┌─────────┐
         │ PostgreSQL │  │  Redis  │  ← só cache: pode ser apagado sem perda
@@ -28,14 +29,37 @@ O CineMatch é a combinação entre um sistema de recomendação e uma rede soci
 ```
 
 O recomendador roda **em lote**: treina com os dados do banco e grava o top-50 de
-cada usuário em `recommendations`. A API só lê essa tabela. Para usuários sem
-recomendações, usa um fallback de popularidade filtrada pelos gêneros que o usuário
-escolheu no cadastro (cold start). Listas e buscas nunca chamam o TMDB.
+cada usuário em `recommendations`; `GET /users/{id}/recommendations` só lê essa tabela. Para
+usuários sem recomendações, usa um fallback de popularidade filtrada pelos gêneros que o
+usuário escolheu no cadastro (cold start). Listas e buscas nunca chamam o TMDB.
+
+O carrossel **"Recomendações para você"** do Home usa outro caminho, a **recomendação
+social** (`GET /users/me/recommendations/social`), calculada na hora:
+
+- quem segue alguém recebe os filmes que essas pessoas avaliaram e o usuário ainda não viu,
+  ordenados pela média bayesiana das notas delas;
+- quem não segue ninguém (ou quando faltam itens) recebe o que a **comunidade inteira** mais
+  curte (`ranking:top-rated`).
+
+O resultado fica no Redis (`recommendations:{user_id}`, 10 min) e é invalidado quando o
+usuário avalia um filme ou segue/deixa de seguir alguém.
+
+### Redis (somente cache)
+
+| chave | tipo | TTL | conteúdo |
+|---|---|---|---|
+| `ranking:top-rated` | Sorted Set | 1 h | 200 filmes mais bem avaliados (média bayesiana) |
+| `recommendations:{user_id}` | Sorted Set | 10 min | recomendação social (a pontuação é a posição na lista) |
+| `recommendations:{user_id}:fonte` | String | 10 min | `seguindo` ou `comunidade` |
+| `tmdb:movie:{tmdb_id}:pt-BR` | String (JSON) | 7 dias (404: 1 dia) | detalhes do TMDB |
+| `similares:{movie_id}:{k}` | String (JSON) | 1 h | ids dos filmes similares |
+
+Se o Redis cair, a API continua funcionando, direto do Postgres e do TMDB.
 
 ```
 backend/
 ├── app/          API (routers/, services/, schemas.py, security.py, ...)
-├── etl/          importação do MovieLens e enriquecimento pelo TMDB
+├── etl/          importação do MovieLens, enriquecimento pelo TMDB e dados sociais
 ├── ml/           modelos, métricas, avaliação, geração em lote, cold start
 │   └── resultados/   tabela versionada de experimentos e EDA
 ├── migrations/   migrações Alembic (SQL puro)
@@ -43,6 +67,8 @@ backend/
 ├── data/         bd.sql (snapshot do schema), dataset e backups (ignorados no git)
 ├── compose.yaml  Postgres, Redis, pgAdmin e API
 └── Dockerfile
+
+frontend/         Next.js (src/app: rotas · src/components · src/lib: API, auth, hooks)
 ```
 
 ## Configuração
@@ -115,6 +141,9 @@ python importar_filmes.py             # movies, genres, movie_genres (+ tmdb_id 
 python importar_avaliacoes.py         # movielens_ratings (staging)
 python migrar_usuarios_movielens.py   # 610 contas em users + avaliações em ratings
 python enriquecer_tmdb.py --limite 20 # teste rápido; sem --limite processa todos
+python popular_social.py              # reviews, follows, curtidas, comentários, favoritos e
+                                      # watchlists fictícios (precisa do usuário demo, abaixo)
+python gravar_ranking_redis.py        # ranking:top-rated inicial no Redis
 ```
 
 O `enriquecer_tmdb.py` grava `tmdb_checked_at` e não reconsulta filmes já
@@ -126,6 +155,13 @@ teste:
 ```bash
 cd backend && python -m app.criar_usuario_demo   # usuário "demo", senha = DEMO_PASSWORD
 ```
+
+Rode o `criar_usuario_demo` **antes** do `popular_social.py`: o script faz o `demo` seguir
+usuários com reviews, para o feed não ficar vazio. O `popular_social.py` é determinístico
+(semente fixa), só acrescenta dados e pode ser reexecutado. Ele dá nome, username e bio
+realistas aos 150 usuários mais ativos do MovieLens e gera ≈1.800 reviews, ≈2,3 mil follows,
+≈6,7 mil curtidas e ≈1,4 mil comentários. Os textos das reviews vêm de modelos de frase,
+então se repetem entre filmes.
 
 ## Pipeline de recomendação
 
@@ -165,6 +201,36 @@ content-based sozinho é fraco no ranking, mas é o único que alcança filmes s
 avaliações, e no híbrido melhora o SVD. Tabela completa (K=10 e 20, com
 diversidade) em [backend/ml/resultados/resultados.md](backend/ml/resultados/resultados.md).
 
+## Frontend
+
+Next.js 16 (App Router) + React 19 + TypeScript, com CSS Modules e a fonte Poppins.
+Interface em português.
+
+```bash
+cd frontend
+npm install
+echo "NEXT_PUBLIC_API_URL=http://localhost:8000" > .env.local   # URL da API
+npm run dev -- -p 3100                                         # http://localhost:3100
+```
+
+A origem do frontend precisa estar em `CORS_ORIGINS` do `backend/.env`
+(ex.: `http://localhost:3100`). Antes, suba a API (`docker compose up -d`) e, para ter
+conteúdo, rode o ETL.
+
+| rota | tela |
+|---|---|
+| `/` | landing (redireciona logado para `/home`) |
+| `/login`, `/cadastro` | autenticação (o cadastro inclui a escolha de gêneros) |
+| `/home` | recomendações + feed de quem você segue |
+| `/filmes/[id]` | detalhe, nota, favorito, watchlist, review e similares |
+| `/buscar` | busca por título, gênero, ano e nota mínima |
+| `/listas` | favoritos, watchlist e histórico |
+| `/amigos` | seguindo e seguidores |
+| `/usuarios/[id]` | perfil, seguir e editar o próprio perfil |
+| `/reviews/[id]` | review com curtir, comentar e excluir |
+
+Verificações: `npm run lint`, `npx tsc --noEmit` e `npm run build`.
+
 ## Testes
 
 ```bash
@@ -172,13 +238,14 @@ cd backend
 pytest
 ```
 
-São 37 testes. Eles criam um banco próprio (`cinematch_test`) pelas migrações,
+São 46 testes. Eles criam um banco próprio (`cinematch_test`) pelas migrações,
 no mesmo servidor do `DATABASE_URL`, e usam Redis falso (fakeredis) e TMDB
 simulado (`httpx.MockTransport`), sem nenhuma chamada real ao TMDB. Cobrem:
 - registro e login;
 - busca e paginação de filmes;
 - criação e atualização da mesma avaliação, e validação da nota;
-- recomendações com e sem histórico;
+- recomendações com e sem histórico, a recomendação social (comunidade e seguidos) e o cache dela
+  no Redis (Sorted Set, acerto de cache, invalidação e API com o Redis fora do ar);
 - o serviço do TMDB: cache hit, cache miss, 404, falha de rede, 5xx e Redis fora do ar;
 - reviews, comentários, curtidas, follows, favoritos e watchlist.
 
@@ -196,12 +263,15 @@ com `pagina` e `tamanho` (máx. 100) e respondem `{itens, total, pagina, tamanho
 | PUT 🔒 | `/users/me/genres` | gêneros preferidos (cold start) |
 | GET 🔒 | `/users/me/feed` | reviews de quem eu sigo |
 | GET 🔒 | `/users/me/watchlist` | minha watchlist |
+| GET 🔒 | `/users/me/movies/{id}` | meu estado num filme: nota, review, favorito, watchlist |
+| GET 🔒 | `/users/me/following/{id}` | se eu sigo o usuário |
+| GET 🔒 | `/users/me/recommendations/social?k=10` | recomendação do Home (`fonte`: `seguindo` ou `comunidade`) |
 | GET | `/users/{id}` | perfil público com contadores |
 | GET | `/users/{id}/ratings` · `/reviews` · `/favorites` | atividade do usuário |
 | GET | `/users/{id}/followers` · `/following` | seguidores e seguidos |
-| GET | `/users/{id}/recommendations?k=10` | recomendações (`fonte`: `modelo` ou `cold_start`) |
+| GET | `/users/{id}/recommendations?k=10` | recomendações do modelo em lote (`fonte`: `modelo` ou `cold_start`) |
 | GET | `/genres` | lista de gêneros |
-| GET | `/movies?q=&genero=` | busca por título e gênero (só banco) |
+| GET | `/movies?q=&genero=&ano=&nota_minima=` | busca por título, gênero, ano e média mínima (só banco) |
 | GET | `/movies/{id}` | detalhe + `detalhes_externos` do TMDB (null se indisponível) |
 | GET | `/movies/{id}/similar?k=10` | similares (co-avaliação + gênero, com cache) |
 | GET | `/movies/{id}/reviews` | reviews do filme |
@@ -221,9 +291,11 @@ A chave do TMDB nunca é enviada ao frontend.
 ## Decisões e observações
 
 - **Usuários do MovieLens** viraram contas em `users` (`ml_user_N`), com o id original
-  em `users.movielens_user_id`. A tabela `movielens_ratings` fica como staging da importação.
+  em `users.movielens_user_id`; os 150 mais ativos ganharam nome, username e bio pelo
+  `popular_social.py` (mantêm o `movielens_user_id`). A tabela `movielens_ratings` fica como staging da importação.
 - **Acesso síncrono ao banco** (psycopg + pool): no Windows, o psycopg assíncrono não
   funciona com o event loop padrão. Só o serviço do TMDB é assíncrono.
 - **Os ids de `movies` não começam em 1** no banco atual (importações anteriores que
   falharam consumiram a sequence). Use sempre os ids que a API devolve.
 - Experimentos são registrados numa tabela versionada (`ml/resultados/`), sem MLflow.
+- **Nota de 0,5 a 5** (meias estrelas, como no MovieLens), garantida por `CHECK` no banco.
