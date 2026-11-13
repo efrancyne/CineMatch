@@ -93,7 +93,8 @@ def main() -> None:
                 WHERE tmdb_id IS NOT NULL
                   AND (overview IS NULL OR release_date IS NULL OR poster_path IS NULL)
                   AND (%(refazer)s OR tmdb_checked_at IS NULL)
-                ORDER BY id
+                -- mais avaliados primeiro: são os que a interface mostra antes
+                ORDER BY (SELECT count(*) FROM ratings r WHERE r.movie_id = movies.id) DESC, id
                 LIMIT %(limite)s
                 """,
                 {"refazer": args.refazer, "limite": args.limite},

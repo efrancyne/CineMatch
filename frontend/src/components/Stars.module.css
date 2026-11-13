@@ -1,0 +1,18 @@
+.stars {
+  display: inline-flex;
+  align-items: center;
+  height: var(--size);
+}
+
+/* A forma da estrela vem do asset exportado do Figma (máscara). */
+.star {
+  width: var(--size);
+  height: var(--size);
+  background: linear-gradient(
+    90deg,
+    var(--color) var(--fill),
+    color-mix(in srgb, var(--color) 28%, transparent) var(--fill)
+  );
+  mask: url("/assets/star-mask-lg.png") center / 85.7% no-repeat;
+  -webkit-mask: url("/assets/star-mask-lg.png") center / 85.7% no-repeat;
+}

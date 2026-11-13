@@ -56,21 +56,32 @@ def buscar(
     genero: str | None,
     pagina: int,
     tamanho: int,
+    ano: int | None = None,
+    nota_minima: float | None = None,
 ) -> tuple[list[FilmeResumo], int]:
     filtros = """
         WHERE (%(q)s::text IS NULL OR m.title ILIKE %(padrao)s)
           AND (%(genero)s::text IS NULL OR EXISTS (
                 SELECT 1 FROM movie_genres mg JOIN genres g ON g.id = mg.genre_id
                 WHERE mg.movie_id = m.id AND lower(g.name) = lower(%(genero)s)))
+          AND (%(ano)s::int IS NULL OR m.year = %(ano)s)
+          AND (%(nota_minima)s::float IS NULL OR s.media >= %(nota_minima)s)
     """
     params = {
         "q": q,
         "padrao": f"%{_escapar_like(q)}%" if q else None,
         "genero": genero,
+        "ano": ano,
+        "nota_minima": nota_minima,
         "limite": tamanho,
         "deslocamento": (pagina - 1) * tamanho,
     }
-    total = conexao.execute("SELECT count(*) AS n FROM movies m " + filtros, params).fetchone()["n"]
+    total = conexao.execute(
+        "SELECT count(*) AS n FROM movies m"
+        " LEFT JOIN LATERAL (SELECT avg(r.rating)::float AS media FROM ratings r"
+        " WHERE r.movie_id = m.id) s ON true " + filtros,
+        params,
+    ).fetchone()["n"]
     linhas = conexao.execute(
         _SELECT_RESUMO
         + filtros

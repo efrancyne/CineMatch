@@ -1,0 +1,45 @@
+:root {
+  --bg: #141414;
+  --text: #e7e7dd;
+  --red: #e0282b;
+  --gold: #eebc4b;
+  --line: #ccba91;
+  --poster-border: #877a61;
+  --field: #3a3a3a;
+  --container: 1338px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-poppins), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+img {
+  display: block;
+}

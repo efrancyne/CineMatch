@@ -1,0 +1,8 @@
+.main {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 16px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}

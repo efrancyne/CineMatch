@@ -1,0 +1,62 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-right: auto;
+}
+
+.author span {
+  display: flex;
+  flex-direction: column;
+}
+
+.author strong {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.author small {
+  font-size: 14px;
+  font-weight: 200;
+}
+
+.date {
+  font-size: 14px;
+  font-weight: 300;
+}
+
+.content {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 300;
+  color: #fff;
+  overflow-wrap: anywhere;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.comments {
+  font-size: 14px;
+  font-weight: 300;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

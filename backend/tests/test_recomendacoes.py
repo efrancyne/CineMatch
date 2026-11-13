@@ -53,3 +53,28 @@ async def test_onboarding_altera_generos(cliente, autenticar):
 
 async def test_usuario_inexistente(cliente):
     assert (await cliente.get("/users/999/recommendations")).status_code == 404
+
+
+async def test_home_sem_seguir_ninguem_usa_a_comunidade(cliente, autenticar):
+    headers = await autenticar("fabi")
+    corpo = (await cliente.get("/users/me/recommendations/social", headers=headers)).json()
+    assert corpo["fonte"] == "comunidade"
+    assert corpo["itens"], "a comunidade deveria render filmes"
+
+
+async def test_home_com_seguidos_prioriza_o_gosto_deles(cliente, banco, autenticar):
+    headers = await autenticar("gabi")  # id 3
+    with banco.connection() as conexao:
+        # o usuário 2 deu nota máxima ao filme 3 e baixa ao filme 4
+        conexao.execute("DELETE FROM ratings WHERE user_id = 2")
+        conexao.execute(
+            "INSERT INTO ratings VALUES (3, 2, NULL, 5.0, now()), (4, 2, NULL, 1.0, now())"
+        )
+    assert (await cliente.post("/follows/2", headers=headers)).status_code == 204
+    corpo = (await cliente.get("/users/me/recommendations/social", params={"k": 2}, headers=headers)).json()
+    assert corpo["fonte"] == "seguindo"
+    assert [i["filme"]["id"] for i in corpo["itens"]] == [3, 4]
+
+
+async def test_home_exige_login(cliente):
+    assert (await cliente.get("/users/me/recommendations/social")).status_code in (401, 403)

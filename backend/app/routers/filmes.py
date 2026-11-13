@@ -29,11 +29,17 @@ def listar_filmes(
     conexao: Conexao,
     q: Annotated[str | None, Query(max_length=100, description="busca no título")] = None,
     genero: Annotated[str | None, Query(description="nome do gênero, ex.: Comedy")] = None,
+    ano: Annotated[int | None, Query(ge=1800, le=2200, description="ano de lançamento")] = None,
+    nota_minima: Annotated[
+        float | None, Query(ge=0.5, le=5, description="média mínima das notas")
+    ] = None,
     pagina: Pagina = 1,
     tamanho: Tamanho = 20,
 ):
     """Lista filmes (mais avaliados primeiro). Só dados do banco."""
-    itens, total = servico.buscar(conexao, q or None, genero, pagina, tamanho)
+    itens, total = servico.buscar(
+        conexao, q or None, genero, pagina, tamanho, ano=ano, nota_minima=nota_minima
+    )
     return PaginaDe[FilmeResumo](itens=itens, total=total, pagina=pagina, tamanho=tamanho)
 
 

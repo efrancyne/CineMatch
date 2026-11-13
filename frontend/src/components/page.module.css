@@ -1,0 +1,95 @@
+.page {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 16px 16px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.title {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.muted {
+  margin: 0;
+  font-weight: 300;
+  color: #aaa;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--line);
+}
+
+.tab {
+  padding: 8px 16px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  font-size: 18px;
+  font-weight: 300;
+  cursor: pointer;
+}
+
+.tabActive {
+  border-bottom-color: var(--red);
+  font-weight: 500;
+}
+
+.chip {
+  padding: 4px 14px;
+  border: 1px solid var(--poster-border);
+  border-radius: 999px;
+  background: none;
+  font-size: 15px;
+  font-weight: 300;
+  cursor: pointer;
+}
+
+.chipOn {
+  background: var(--red);
+  border-color: var(--red);
+  font-weight: 500;
+}
+
+.btn {
+  padding: 8px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: none;
+  font-size: 16px;
+  font-weight: 300;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.btnPrimary {
+  background: var(--red);
+  border-color: var(--red);
+  font-weight: 500;
+}
+
+.btnPrimary:hover:not(:disabled) {
+  background: #c9211f;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.error {
+  margin: 0;
+  color: #ff6b6e;
+  font-size: 15px;
+}

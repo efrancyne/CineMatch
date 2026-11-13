@@ -1,0 +1,49 @@
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.info {
+  flex: 1;
+  min-width: 220px;
+}
+
+.name {
+  margin: 0;
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.username {
+  margin: 0;
+  font-weight: 200;
+}
+
+.bio {
+  margin: 8px 0 0;
+  max-width: 60ch;
+  font-weight: 300;
+  color: #ddd;
+}
+
+.stats {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  font-weight: 300;
+}
+
+.stats strong {
+  font-weight: 700;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}

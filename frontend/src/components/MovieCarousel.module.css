@@ -1,0 +1,137 @@
+.carousel {
+  display: flex;
+  gap: 32px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+
+.carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.featured,
+.card {
+  position: relative;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 48px;
+  scroll-snap-align: start;
+  background: #222;
+}
+
+.featured {
+  flex-basis: min(600px, 85vw);
+  height: 400px;
+}
+
+.card {
+  flex-basis: 268px;
+  aspect-ratio: 600 / 900;
+}
+
+.poster {
+  object-fit: cover;
+}
+
+.noPoster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 24px;
+  text-align: center;
+  font-weight: 600;
+  color: #888;
+}
+
+.overlay {
+  position: absolute;
+  top: -24px;
+  left: -14px;
+  width: 288px;
+  height: 439px;
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.featuredText {
+  position: absolute;
+  left: 21px;
+  right: 21px;
+  bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.featuredTitle,
+.cardTitle {
+  margin: 0;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 8px 3px rgba(0, 0, 0, 0.5);
+}
+
+.featuredTitle {
+  font-size: 48px;
+}
+
+.footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 96px;
+  padding: 7px 26px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cardTitle {
+  font-size: 32px;
+}
+
+.rating {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 8px 3px rgba(0, 0, 0, 0.5);
+}
+
+.ratingLg {
+  font-size: 36px;
+}
+
+@media (max-width: 600px) {
+  .featuredTitle {
+    font-size: 36px;
+  }
+
+  .ratingLg {
+    font-size: 28px;
+  }
+}
+
+/* Link transparente que torna o card inteiro clicável */
+.cover {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+}
+
+.cover:focus-visible {
+  outline: 3px solid var(--line);
+  outline-offset: -3px;
+}

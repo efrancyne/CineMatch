@@ -1,0 +1,260 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: linear-gradient(to bottom, #000 0%, rgba(20, 20, 20, 0) 100%);
+  border-radius: 0 0 32px 32px;
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  height: 96px;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 4.4vw, 64px);
+}
+
+.logo {
+  font-size: clamp(40px, 5.3vw, 76px);
+  font-weight: 800;
+  letter-spacing: -0.08em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.dot {
+  color: var(--red);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.link {
+  font-size: 22px;
+  font-weight: 300;
+  white-space: nowrap;
+}
+
+.more {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.moreBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  line-height: inherit;
+  cursor: pointer;
+}
+
+.chevron {
+  width: 10px;
+  height: 10px;
+  transition: transform 0.15s ease;
+}
+
+.moreBtn[aria-expanded="true"] .chevron {
+  transform: rotate(180deg);
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 14px);
+  right: -12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 190px;
+  padding: 6px;
+  border-radius: 14px;
+  background: #1b1b1b;
+  border: 1px solid rgba(204, 186, 145, 0.35);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+  animation: menu-in 0.12s ease-out;
+}
+
+.menu::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  right: 24px;
+  width: 10px;
+  height: 10px;
+  background: #1b1b1b;
+  border-top: 1px solid rgba(204, 186, 145, 0.35);
+  border-left: 1px solid rgba(204, 186, 145, 0.35);
+  transform: rotate(45deg);
+}
+
+.menu a,
+.menu button {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 9px;
+  background: none;
+  color: inherit;
+  font-size: 17px;
+  font-weight: 300;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menu a:hover,
+.menu button:hover,
+.menu a:focus-visible,
+.menu button:focus-visible {
+  background: rgba(255, 255, 255, 0.08);
+  outline: none;
+}
+
+.menuSep {
+  height: 1px;
+  margin: 4px 8px;
+  background: rgba(204, 186, 145, 0.2);
+}
+
+.menuDanger:hover {
+  color: var(--red);
+}
+
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+.active {
+  font-weight: 500;
+}
+
+.button {
+  background: var(--red);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 24px;
+  font-weight: 300;
+  white-space: nowrap;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 240px;
+  padding: 4px 16px;
+  border-radius: 18px;
+  background: var(--field);
+  font-size: 24px;
+  font-weight: 300;
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 24px;
+  font-weight: 300;
+  outline: none;
+}
+
+.search input::placeholder {
+  color: var(--text);
+  opacity: 1;
+}
+
+.search:focus-within {
+  box-shadow: 0 0 0 1px var(--line);
+}
+
+.userButton {
+  display: flex;
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+@media (max-width: 1280px) {
+  .search {
+    width: 180px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .hideMd {
+    display: none;
+  }
+}
+
+@media (max-width: 800px) {
+  .hideSm {
+    display: none;
+  }
+
+  .nav {
+    gap: 14px;
+  }
+
+  .menu {
+    right: -8px;
+    min-width: 170px;
+  }
+
+  .menu::before {
+    right: 20px;
+  }
+
+  .link,
+  .button {
+    font-size: 18px;
+  }
+}
+
+.onlyXs {
+  display: none !important;
+}
+
+@media (max-width: 600px) {
+  .inner {
+    gap: 8px;
+    height: 72px;
+  }
+
+  .logo {
+    font-size: 30px;
+  }
+
+  .nav {
+    gap: 12px;
+  }
+
+  .link {
+    font-size: 16px;
+  }
+
+  .hideXs {
+    display: none;
+  }
+
+  .onlyXs {
+    display: block !important;
+  }
+}

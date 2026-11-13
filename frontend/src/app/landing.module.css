@@ -1,0 +1,92 @@
+.main {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 16px 64px;
+}
+
+.hero {
+  position: relative;
+  height: 484px;
+  border-radius: 48px;
+  overflow: hidden;
+}
+
+.heroImage {
+  object-fit: cover;
+}
+
+/* Degradê do Figma: transparente até ~60% e some no fundo da página */
+.heroFade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(78, 68, 58, 0) 60%, var(--bg) 100%);
+}
+
+.heroText {
+  position: absolute;
+  top: 96px;
+  right: 35px;
+  width: 361px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.headline {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 56px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.08em;
+  white-space: nowrap;
+}
+
+.headline i {
+  font-style: normal;
+  color: var(--red);
+}
+
+.cta {
+  background: var(--red);
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.section {
+  margin-top: 8px;
+}
+
+.sectionTitle {
+  margin: 0 0 8px;
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: -0.05em;
+}
+
+.empty {
+  color: #888;
+}
+
+@media (max-width: 800px) {
+  .hero {
+    height: 420px;
+    border-radius: 32px;
+  }
+
+  .heroText {
+    top: auto;
+    bottom: 48px;
+    right: 24px;
+    left: 24px;
+    width: auto;
+  }
+
+  .headline {
+    font-size: 40px;
+  }
+}

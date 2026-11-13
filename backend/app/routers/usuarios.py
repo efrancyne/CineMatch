@@ -1,15 +1,19 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Query
+from fastapi.concurrency import run_in_threadpool
 
-from app.deps import Conexao, Pagina, Tamanho, exigir_usuario
+from app.deps import Conexao, Pagina, Redis, Tamanho, exigir_filme, exigir_usuario
 from app.schemas import (
     AtualizarPerfil,
     AvaliacaoComFilme,
+    EstadoFilme,
+    EstadoSeguir,
     FilmeResumo,
     GenerosEntrada,
     ItemFeed,
     Pagina as PaginaDe,
+    Recomendacao,
     Recomendacoes,
     Review,
     UsuarioPerfil,
@@ -17,6 +21,7 @@ from app.schemas import (
     UsuarioPublico,
 )
 from app.security import UsuarioAtual, UsuarioOpcional
+from app.services import cache
 from app.services import recomendacoes as servico_recomendacoes
 from app.services.filmes import resumos
 from app.services.reviews import feed, listar_reviews
@@ -32,6 +37,37 @@ router = APIRouter(prefix="/users", tags=["usuários"])
 
 
 # --- Rotas do próprio usuário (antes de /{user_id}) --------------------------
+
+@router.get("/me/recommendations/social", response_model=Recomendacoes)
+async def recomendacoes_sociais(
+    conexao: Conexao,
+    r: Redis,
+    user_id: UsuarioAtual,
+    k: Annotated[int, Query(ge=1, le=50)] = 10,
+):
+    """Recomendações da home: gosto de quem o usuário segue; sem seguidos (ou
+    sem itens suficientes), completa com a comunidade inteira. Fica em cache
+    no Redis (`recommendations:{user_id}`); avaliar ou seguir invalida."""
+    em_cache = await cache.ler_recomendacoes(r, user_id, k)
+    if em_cache is None:
+        ranking = await cache.ranking_top_rated(r, conexao)
+        calculado = await run_in_threadpool(
+            servico_recomendacoes.social, conexao, user_id, cache.TAMANHO_RECOMENDACOES, ranking
+        )
+        await cache.gravar_recomendacoes(
+            r, user_id, calculado.fonte, [(i.filme.id, i.score) for i in calculado.itens]
+        )
+        return Recomendacoes(fonte=calculado.fonte, model_version=None, itens=calculado.itens[:k])
+
+    fonte, ids = em_cache
+    filmes = await run_in_threadpool(resumos, conexao, ids)
+    return Recomendacoes(
+        fonte=fonte,
+        model_version=None,
+        # no cache o "score" é a posição; a nota da recomendação não é guardada
+        itens=[Recomendacao(filme=filmes[m], score=float(len(ids) - i)) for i, m in enumerate(ids) if m in filmes],
+    )
+
 
 @router.get("/me", response_model=UsuarioProprio)
 def eu(conexao: Conexao, user_id: UsuarioAtual):
@@ -68,6 +104,34 @@ def minha_watchlist(
     conexao: Conexao, user_id: UsuarioAtual, pagina: Pagina = 1, tamanho: Tamanho = 20
 ):
     return _filmes_da_lista(conexao, "watchlist", user_id, pagina, tamanho)
+
+
+@router.get("/me/movies/{movie_id}", response_model=EstadoFilme)
+def meu_estado_no_filme(movie_id: int, conexao: Conexao, user_id: UsuarioAtual):
+    """Minha nota/review e se o filme está nos meus favoritos e na watchlist."""
+    exigir_filme(conexao, movie_id)
+    return conexao.execute(
+        """
+        SELECT r.rating AS nota, r.review_id, rv.content AS review,
+               EXISTS (SELECT 1 FROM users_favorites f
+                       WHERE f.user_id = %(u)s AND f.movie_id = %(m)s) AS favorito,
+               EXISTS (SELECT 1 FROM watchlist w
+                       WHERE w.user_id = %(u)s AND w.movie_id = %(m)s) AS watchlist
+        FROM (SELECT 1) base
+        LEFT JOIN ratings r ON r.user_id = %(u)s AND r.movie_id = %(m)s
+        LEFT JOIN reviews rv ON rv.id = r.review_id
+        """,
+        {"u": user_id, "m": movie_id},
+    ).fetchone()
+
+
+@router.get("/me/following/{alvo_id}", response_model=EstadoSeguir)
+def eu_sigo(alvo_id: int, conexao: Conexao, user_id: UsuarioAtual):
+    linha = conexao.execute(
+        "SELECT 1 FROM follows WHERE following_user_id = %s AND followed_user_id = %s",
+        (user_id, alvo_id),
+    ).fetchone()
+    return {"seguindo": linha is not None}
 
 
 # --- Perfis públicos ----------------------------------------------------------

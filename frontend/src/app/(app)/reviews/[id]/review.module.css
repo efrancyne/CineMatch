@@ -1,0 +1,167 @@
+.narrow {
+  max-width: 820px;
+}
+
+.movie {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.movie span:last-child {
+  display: flex;
+  flex-direction: column;
+}
+
+.movie strong {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.movie small {
+  font-weight: 300;
+}
+
+.poster {
+  position: relative;
+  flex: 0 0 60px;
+  height: 90px;
+  overflow: hidden;
+  border: 1px solid var(--poster-border);
+  border-radius: 12px;
+  background: #222;
+}
+
+.poster img {
+  object-fit: cover;
+}
+
+.review {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+}
+
+.author {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.who {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-right: auto;
+}
+
+.who span {
+  display: flex;
+  flex-direction: column;
+}
+
+.who strong {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.who small {
+  font-weight: 200;
+}
+
+.author time {
+  font-size: 14px;
+  font-weight: 300;
+}
+
+.content {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 300;
+  color: #fff;
+  overflow-wrap: anywhere;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.heading {
+  margin: 0 0 12px;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.form {
+  display: flex;
+  gap: 8px;
+}
+
+.form input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 14px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: var(--field);
+  font-size: 16px;
+  font-weight: 300;
+  outline: none;
+}
+
+.form input:focus-visible {
+  border-color: var(--line);
+}
+
+.comments {
+  display: flex;
+  flex-direction: column;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.comments li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #2c2c2c;
+}
+
+.comments li > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.comments p {
+  margin: 0;
+  font-weight: 300;
+  overflow-wrap: anywhere;
+}
+
+.comments p strong {
+  font-weight: 600;
+}
+
+.comments small {
+  font-size: 12px;
+  color: #aaa;
+}
+
+.remove {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 13px;
+  font-weight: 300;
+  text-decoration: underline;
+  cursor: pointer;
+  color: #ff6b6e;
+}

@@ -1,0 +1,58 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 560px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+}
+
+.form label,
+.form legend {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.form small {
+  font-weight: 300;
+  color: #aaa;
+}
+
+.form input,
+.form textarea {
+  padding: 8px 14px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: var(--field);
+  font-size: 16px;
+  font-weight: 300;
+  outline: none;
+  resize: vertical;
+}
+
+.form input:focus-visible,
+.form textarea:focus-visible {
+  border-color: var(--line);
+}
+
+.form fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}

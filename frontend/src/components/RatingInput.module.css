@@ -1,0 +1,27 @@
+.wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.zones {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+}
+
+.zones button {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.zones button:disabled {
+  cursor: default;
+}
+
+.zones button:focus-visible {
+  outline: 2px solid var(--line);
+  outline-offset: -2px;
+}

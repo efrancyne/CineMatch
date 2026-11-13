@@ -1,9 +1,10 @@
 """Ações do usuário autenticado: avaliar, favoritar, watchlist e seguir."""
-from fastapi import APIRouter, HTTPException, Response, status
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Response, status
 
-from app.deps import Conexao, exigir_filme, exigir_usuario
+from app.deps import Conexao, Redis, exigir_filme, exigir_usuario
 from app.schemas import Avaliacao, AvaliacaoEntrada
 from app.security import UsuarioAtual
+from app.services.cache import invalidar_recomendacoes
 
 router = APIRouter(tags=["interações"])
 
@@ -12,7 +13,9 @@ def sem_conteudo() -> Response:
 
 
 @router.post("/ratings", response_model=Avaliacao)
-def avaliar(dados: AvaliacaoEntrada, conexao: Conexao, user_id: UsuarioAtual):
+def avaliar(
+    dados: AvaliacaoEntrada, conexao: Conexao, user_id: UsuarioAtual, r: Redis, tarefas: BackgroundTasks
+):
     """Cria ou atualiza a nota do usuário para o filme. Se `review` vier
     preenchido, cria (ou atualiza) a review e a vincula, na mesma transação."""
     exigir_filme(conexao, dados.movie_id)
@@ -49,11 +52,14 @@ def avaliar(dados: AvaliacaoEntrada, conexao: Conexao, user_id: UsuarioAtual):
             "SELECT content FROM reviews WHERE id = %s", (linha["review_id"],)
         ).fetchone()["content"]
 
+    tarefas.add_task(invalidar_recomendacoes, r, user_id)  # roda após o commit
     return Avaliacao(**linha, review=texto)
 
 
 @router.delete("/ratings/{movie_id}", status_code=status.HTTP_204_NO_CONTENT)
-def remover_avaliacao(movie_id: int, conexao: Conexao, user_id: UsuarioAtual):
+def remover_avaliacao(
+    movie_id: int, conexao: Conexao, user_id: UsuarioAtual, r: Redis, tarefas: BackgroundTasks
+):
     """Remove a nota e, se houver, a review com seus comentários e curtidas."""
     linha = conexao.execute(
         "DELETE FROM ratings WHERE user_id = %s AND movie_id = %s RETURNING review_id",
@@ -64,6 +70,7 @@ def remover_avaliacao(movie_id: int, conexao: Conexao, user_id: UsuarioAtual):
         conexao.execute("DELETE FROM likes WHERE review_id = %s", (rid,))
         conexao.execute("DELETE FROM comments WHERE review_id = %s", (rid,))
         conexao.execute("DELETE FROM reviews WHERE id = %s", (rid,))
+    tarefas.add_task(invalidar_recomendacoes, r, user_id)
     return sem_conteudo()
 
 
@@ -100,7 +107,9 @@ for caminho, tabela in (("favorites", "users_favorites"), ("watchlist", "watchli
 
 
 @router.post("/follows/{alvo_id}", status_code=status.HTTP_204_NO_CONTENT)
-def seguir(alvo_id: int, conexao: Conexao, user_id: UsuarioAtual):
+def seguir(
+    alvo_id: int, conexao: Conexao, user_id: UsuarioAtual, r: Redis, tarefas: BackgroundTasks
+):
     if alvo_id == user_id:
         raise HTTPException(422, "Não é possível seguir a si mesmo.")
     exigir_usuario(conexao, alvo_id)
@@ -111,13 +120,17 @@ def seguir(alvo_id: int, conexao: Conexao, user_id: UsuarioAtual):
         """,
         (user_id, alvo_id),
     )
+    tarefas.add_task(invalidar_recomendacoes, r, user_id)
     return sem_conteudo()
 
 
 @router.delete("/follows/{alvo_id}", status_code=status.HTTP_204_NO_CONTENT)
-def deixar_de_seguir(alvo_id: int, conexao: Conexao, user_id: UsuarioAtual):
+def deixar_de_seguir(
+    alvo_id: int, conexao: Conexao, user_id: UsuarioAtual, r: Redis, tarefas: BackgroundTasks
+):
     conexao.execute(
         "DELETE FROM follows WHERE following_user_id = %s AND followed_user_id = %s",
         (user_id, alvo_id),
     )
+    tarefas.add_task(invalidar_recomendacoes, r, user_id)
     return sem_conteudo()

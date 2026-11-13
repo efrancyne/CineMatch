@@ -80,3 +80,24 @@ async def test_atualizar_perfil(cliente, autenticar):
     resp = await cliente.patch("/users/me", json={"bio": "Cinéfila."}, headers=headers)
     assert resp.status_code == 200 and resp.json()["bio"] == "Cinéfila."
     assert resp.json()["name"] == "Ana"  # campo não enviado não muda
+
+
+async def test_estado_do_usuario_no_filme_e_no_follow(cliente, autenticar):
+    headers = await autenticar("estado")
+    assert (await cliente.get("/users/me/movies/1")).status_code == 401
+    vazio = (await cliente.get("/users/me/movies/1", headers=headers)).json()
+    assert vazio == {"nota": None, "review_id": None, "review": None, "favorito": False, "watchlist": False}
+
+    await cliente.post("/ratings", json={"movie_id": 1, "rating": 4.5, "review": "Bom"}, headers=headers)
+    await cliente.post("/favorites/1", headers=headers)
+    await cliente.post("/watchlist/1", headers=headers)
+    estado = (await cliente.get("/users/me/movies/1", headers=headers)).json()
+    assert estado["nota"] == 4.5 and estado["review"] == "Bom"
+    assert estado["favorito"] is True and estado["watchlist"] is True
+    assert (await cliente.get("/users/me/movies/9999", headers=headers)).status_code == 404
+
+    outro = await autenticar("outro")
+    alvo = (await cliente.get("/users/me", headers=outro)).json()["id"]
+    assert (await cliente.get(f"/users/me/following/{alvo}", headers=headers)).json() == {"seguindo": False}
+    await cliente.post(f"/follows/{alvo}", headers=headers)
+    assert (await cliente.get(f"/users/me/following/{alvo}", headers=headers)).json() == {"seguindo": True}

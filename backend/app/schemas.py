@@ -128,7 +128,7 @@ class Recomendacao(BaseModel):
 
 
 class Recomendacoes(BaseModel):
-    fonte: Literal["modelo", "cold_start"]
+    fonte: Literal["modelo", "cold_start", "seguindo", "comunidade"]
     model_version: str | None
     itens: list[Recomendacao]
 
@@ -202,3 +202,17 @@ class ReviewDetalhe(Review):
 class ItemFeed(Review):
     filme: FilmeResumo
 
+
+
+class EstadoFilme(BaseModel):
+    """O que o usuário autenticado já fez com um filme."""
+
+    nota: float | None = None
+    review_id: int | None = None
+    review: str | None = None
+    favorito: bool = False
+    watchlist: bool = False
+
+
+class EstadoSeguir(BaseModel):
+    seguindo: bool

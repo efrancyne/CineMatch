@@ -51,3 +51,17 @@ async def test_similares(cliente):
     assert set(titulos) == {"Grumpier Old Men", "Up"}
     # Cache: a segunda chamada devolve o mesmo resultado
     assert [f["title"] for f in (await cliente.get("/movies/1/similar", params={"k": 3})).json()] == titulos
+
+
+async def test_filtros_por_ano_e_nota_minima(cliente):
+    todos = (await cliente.get("/movies")).json()
+    um_ano = todos["itens"][0]["year"]
+    por_ano = (await cliente.get("/movies", params={"ano": um_ano})).json()
+    assert por_ano["total"] >= 1
+    assert all(f["year"] == um_ano for f in por_ano["itens"])
+
+    # Toy Story tem média 4.5; só ele (e filmes com média >= 4.5) passam
+    boas = (await cliente.get("/movies", params={"nota_minima": 4.5})).json()
+    assert boas["total"] == len(boas["itens"]) >= 1
+    assert all(f["media"] is not None and f["media"] >= 4.5 for f in boas["itens"])
+    assert (await cliente.get("/movies", params={"nota_minima": 9})).status_code == 422

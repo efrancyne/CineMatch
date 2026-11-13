@@ -1,0 +1,46 @@
+.form {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 300;
+}
+
+.form input,
+.form select {
+  padding: 8px 14px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: var(--field);
+  font-size: 16px;
+  font-weight: 300;
+  outline: none;
+}
+
+.form input:focus-visible,
+.form select:focus-visible {
+  border-color: var(--line);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+@media (max-width: 900px) {
+  .form {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .form label:first-child,
+  .actions {
+    grid-column: 1 / -1;
+  }
+}
